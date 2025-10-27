@@ -23,6 +23,9 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             CompanySeeder::class,
+            StaffSeeder::class,
+            BookingSlotTemplateSeeder::class,
+            BookingSlotExceptionSeeder::class,
         ]);
     }
 }

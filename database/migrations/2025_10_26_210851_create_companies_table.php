@@ -22,6 +22,7 @@ return new class extends Migration
             $table->text('address')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

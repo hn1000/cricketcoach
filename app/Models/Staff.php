@@ -31,4 +31,27 @@ class Staff extends Model
     {
         return $this->belongsTo(Company::class);
     }
+
+    public function bookingSlotTemplates()
+    {
+        return $this->hasMany(BookingSlotTemplate::class);
+    }
+
+    public function bookingSlotExceptions()
+    {
+        return $this->hasMany(BookingSlotException::class);
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    /**
+     * Get the staff member's full name
+     */
+    public function getFullNameAttribute()
+    {
+        return "{$this->first_name} {$this->last_name}";
+    }
 }
