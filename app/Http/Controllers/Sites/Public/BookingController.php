@@ -54,6 +54,7 @@ class BookingController extends Controller
      */
     public function store(Request $request)
     {
+
         $validated = $request->validate([
             'company_id' => 'required|exists:companies,id',
             'staff_id' => 'required|exists:staff,id',
@@ -65,6 +66,7 @@ class BookingController extends Controller
             'customer_phone' => 'nullable|string|max:50',
             'notes' => 'nullable|string|max:1000',
         ]);
+
 
         try {
             DB::beginTransaction();

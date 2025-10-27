@@ -13,11 +13,12 @@ use App\Http\Controllers\Sites\Admin\StaffCalendarController;
 use App\Http\Controllers\Sites\Admin\StaffController;
 use Illuminate\Support\Facades\Route;
 
-// Admin routes (all protected by authentication middleware)
+// Admin routes (protected by authentication and admin middleware)
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
     'verified',
+    'admin',
 ])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('companies', CompanyController::class);

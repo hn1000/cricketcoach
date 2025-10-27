@@ -17,9 +17,17 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
-        // Exclude Stripe webhook from CSRF protection
+        // Exclude Stripe webhook and public API endpoints from CSRF protection
         $middleware->validateCsrfTokens(except: [
             '/webhooks/stripe',
+            '/checkout/*/payment-intent',
+            '/checkout/*/confirm',
+            '/booking/cancel/*',
+        ]);
+
+        // Register admin middleware alias
+        $middleware->alias([
+            'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
