@@ -3,9 +3,11 @@
 use App\Http\Controllers\Sites\Admin\BookingSlotController;
 use App\Http\Controllers\Sites\Admin\BookingSlotExceptionController;
 use App\Http\Controllers\Sites\Admin\BookingSlotTemplateController;
+use App\Http\Controllers\Sites\Admin\CompanyCalendarController;
 use App\Http\Controllers\Sites\Admin\CompanyController;
 use App\Http\Controllers\Sites\Admin\CompanyManageController;
 use App\Http\Controllers\Sites\Admin\DashboardController;
+use App\Http\Controllers\Sites\Admin\StaffCalendarController;
 use App\Http\Controllers\Sites\Admin\StaffController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,4 +34,12 @@ Route::middleware([
 
     // Exception routes (one-off unavailable times)
     Route::resource('companies.staff.exceptions', BookingSlotExceptionController::class)->except(['show']);
+
+    // Staff Calendar routes
+    Route::get('companies/{company}/staff/{staff}/calendar', [StaffCalendarController::class, 'index'])->name('companies.staff.calendar.index');
+    Route::get('companies/{company}/staff/{staff}/calendar/events', [StaffCalendarController::class, 'events'])->name('companies.staff.calendar.events');
+
+    // Company Calendar routes
+    Route::get('companies/{company}/calendar', [CompanyCalendarController::class, 'index'])->name('companies.calendar.index');
+    Route::get('companies/{company}/calendar/bookings', [CompanyCalendarController::class, 'bookings'])->name('companies.calendar.bookings');
 });

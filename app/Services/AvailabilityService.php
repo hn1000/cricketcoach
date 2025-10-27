@@ -119,8 +119,8 @@ class AvailabilityService
         $slots = collect();
         $slotDuration = $template->slot_duration;
 
-        $start = Carbon::createFromFormat('Y-m-d H:i', $date->format('Y-m-d') . ' ' . $template->start_time);
-        $end = Carbon::createFromFormat('Y-m-d H:i', $date->format('Y-m-d') . ' ' . $template->end_time);
+        $start = Carbon::createFromFormat('Y-m-d H:i:s', $date->format('Y-m-d') . ' ' . $template->start_time);
+        $end = Carbon::createFromFormat('Y-m-d H:i:s', $date->format('Y-m-d') . ' ' . $template->end_time);
 
         $current = $start->copy();
 
