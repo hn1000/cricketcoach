@@ -29,4 +29,14 @@ class Company extends Model
     {
         return $this->hasMany(Staff::class);
     }
+
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
 }

@@ -11,6 +11,7 @@ class Booking extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'order_id',
         'staff_id',
         'user_id',
         'company_id',
@@ -18,11 +19,13 @@ class Booking extends Model
         'start_time',
         'end_time',
         'duration',
+        'price',
         'status',
         'customer_name',
         'customer_email',
         'customer_phone',
         'notes',
+        'confirmation_token',
         'cancellation_reason',
         'cancelled_at',
     ];
@@ -30,6 +33,7 @@ class Booking extends Model
     protected $casts = [
         'booking_date' => 'date',
         'duration' => 'integer',
+        'price' => 'decimal:2',
         'cancelled_at' => 'datetime',
     ];
 
@@ -46,6 +50,16 @@ class Booking extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    public function orderItem()
+    {
+        return $this->morphOne(OrderItem::class, 'orderable');
     }
 
     /**
