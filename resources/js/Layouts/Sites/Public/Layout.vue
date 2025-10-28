@@ -89,20 +89,26 @@ const mobileMenuOpen = ref(false);
                             </Link>
                         </li>
                         <li>
-                            <a
-                                href="#how-it-works"
-                                class="block py-2 pr-4 pl-3 text-gray-700 rounded hover:text-blue-700 lg:p-0 dark:text-gray-400 dark:hover:text-blue-500"
+                            <Link
+                                :href="route('how-it-works')"
+                                class="block py-2 pr-4 pl-3 rounded lg:p-0"
+                                :class="route().current('how-it-works')
+                                    ? 'text-blue-700 dark:text-blue-500'
+                                    : 'text-gray-700 hover:text-blue-700 dark:text-gray-400 dark:hover:text-blue-500'"
                             >
                                 How It Works
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a
-                                href="#about"
-                                class="block py-2 pr-4 pl-3 text-gray-700 rounded hover:text-blue-700 lg:p-0 dark:text-gray-400 dark:hover:text-blue-500"
+                            <Link
+                                :href="route('about')"
+                                class="block py-2 pr-4 pl-3 rounded lg:p-0"
+                                :class="route().current('about')
+                                    ? 'text-blue-700 dark:text-blue-500'
+                                    : 'text-gray-700 hover:text-blue-700 dark:text-gray-400 dark:hover:text-blue-500'"
                             >
                                 About
-                            </a>
+                            </Link>
                         </li>
                     </ul>
                 </div>
