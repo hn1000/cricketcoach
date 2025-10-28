@@ -17,13 +17,19 @@ Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('co
 // Booking flow
 Route::prefix('booking')->name('booking.')->group(function () {
     Route::get('/companies/{company}/staff/{staff}', [BookingController::class, 'create'])->name('create');
+
+    // Authenticated routes (booking creation requires login)
+    Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
+        Route::post('/store', [BookingController::class, 'store'])->name('store');
+    });
+
     Route::get('/confirmation/{confirmationToken}', [BookingController::class, 'confirmation'])->name('confirmation');
     Route::get('/cancel/{confirmationToken}', [BookingController::class, 'cancelForm'])->name('cancel.form');
     Route::post('/cancel/{confirmationToken}', [BookingController::class, 'cancel'])->name('cancel');
 });
 
-// Checkout and payment
-Route::prefix('checkout')->name('checkout.')->group(function () {
+// Checkout and payment (requires authentication)
+Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->prefix('checkout')->name('checkout.')->group(function () {
     Route::get('/{order}', [CheckoutController::class, 'show'])->name('show');
     Route::post('/{order}/payment-intent', [CheckoutController::class, 'createPaymentIntent'])->name('payment-intent');
     Route::post('/{order}/confirm', [CheckoutController::class, 'confirm'])->name('confirm');

@@ -1,6 +1,6 @@
 <script setup>
 import PublicLayout from '@/Layouts/Sites/Public/Layout.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { ref, computed, watch, onMounted } from 'vue';
 
 const props = defineProps({
@@ -8,6 +8,15 @@ const props = defineProps({
     staff: Object,
     preselected: Object,
 });
+
+const page = usePage();
+
+// Check if user is authenticated
+const isAuthenticated = computed(() => page.props.auth?.user !== null);
+const currentUser = computed(() => page.props.auth?.user);
+
+// Get current URL for redirect after login
+const currentUrl = computed(() => page.url);
 
 const step = ref(1); // 1: Select Date/Time, 2: Enter Details, 3: Review
 
@@ -113,64 +122,59 @@ const goToStep = (stepNumber) => {
     step.value = stepNumber;
 };
 
-const submitBooking = async () => {
+const submitBooking = () => {
     if (submitting.value) return;
 
     errors.value = {};
     submitting.value = true;
 
-    try {
-        const response = await fetch(route('api.bookings.store'), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({
-                company_id: props.company.id,
-                staff_id: props.staff.id,
-                booking_date: formatDateKey(selectedDate.value),
-                start_time: selectedSlot.value.start_time,
-                end_time: selectedSlot.value.end_time,
-                ...customerForm.value,
-            }),
-        });
+    // Use Inertia's router for proper session handling
+    router.post(route('booking.store'), {
+        company_id: props.company.id,
+        staff_id: props.staff.id,
+        booking_date: formatDateKey(selectedDate.value),
+        start_time: selectedSlot.value.start_time,
+        end_time: selectedSlot.value.end_time,
+        ...customerForm.value,
+    }, {
+        onSuccess: (page) => {
+            // On success, Inertia will handle the redirect automatically
+            // The controller redirects to checkout page
+        },
+        onError: (pageErrors) => {
+            console.error('Booking creation failed:', pageErrors);
 
-        const data = await response.json();
-
-        if (response.ok) {
-            // Redirect to checkout
-            router.visit(route('checkout.show', data.order_id));
-        } else {
-            console.error('Booking creation failed:', response.status, data);
-
-            // Handle Laravel validation errors (422 status)
-            if (response.status === 422 && data.errors) {
-                // Laravel validation errors format: { errors: { field: [messages] } }
-                errors.value = {};
-                Object.keys(data.errors).forEach(key => {
-                    errors.value[key] = data.errors[key][0]; // Get first error message
-                });
-                // Also set general error with main message
-                errors.value.general = data.message || 'Please check the form for errors.';
-
-                // Scroll back to step 2 if there are customer form field errors
-                const customerFields = ['customer_name', 'customer_email', 'customer_phone', 'notes'];
-                const hasCustomerFieldError = Object.keys(data.errors).some(key => customerFields.includes(key));
-                if (hasCustomerFieldError && step.value === 3) {
-                    step.value = 2;
+            // Handle Laravel validation errors
+            errors.value = {};
+            Object.keys(pageErrors).forEach(key => {
+                if (Array.isArray(pageErrors[key])) {
+                    errors.value[key] = pageErrors[key][0];
+                } else {
+                    errors.value[key] = pageErrors[key];
                 }
-            } else {
-                // Other error responses
-                errors.value = { general: data.message || 'Failed to create booking' };
+            });
+
+            // Set general error if available
+            if (pageErrors.message) {
+                errors.value.general = pageErrors.message;
+            } else if (Object.keys(pageErrors).length > 0) {
+                errors.value.general = 'Please check the form for errors.';
             }
-        }
-    } catch (error) {
-        console.error('Booking creation error:', error);
-        errors.value = { general: 'An error occurred. Please try again.' };
-    } finally {
-        submitting.value = false;
-    }
+
+            // Scroll back to step 2 if there are customer form field errors
+            const customerFields = ['customer_name', 'customer_email', 'customer_phone', 'notes'];
+            const hasCustomerFieldError = Object.keys(pageErrors).some(key => customerFields.includes(key));
+            if (hasCustomerFieldError && step.value === 3) {
+                step.value = 2;
+            }
+
+            submitting.value = false;
+        },
+        onFinish: () => {
+            // This runs after success or error
+            submitting.value = false;
+        },
+    });
 };
 
 // Format date for display
@@ -187,6 +191,12 @@ const formatDate = (date) => {
 onMounted(() => {
     if (props.preselected?.date) {
         selectedDate.value = props.preselected.date;
+    }
+
+    // Pre-fill customer details if user is authenticated
+    if (isAuthenticated.value && currentUser.value) {
+        customerForm.value.customer_name = currentUser.value.name || '';
+        customerForm.value.customer_email = currentUser.value.email || '';
     }
 });
 </script>
@@ -249,6 +259,45 @@ onMounted(() => {
                         </div>
                     </div>
                 </div>
+
+                <!-- Authentication Required Message -->
+                <div v-if="!isAuthenticated" class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-8 mb-6">
+                    <div class="text-center">
+                        <svg class="mx-auto h-16 w-16 text-blue-600 dark:text-blue-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Login Required</h2>
+                        <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                            Please log in or create an account to book a coaching session. This allows us to keep track of your bookings and send you confirmation emails.
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                            <Link
+                                :href="route('login') + '?intended=' + encodeURIComponent(currentUrl)"
+                                class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+                            >
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 102 0V4a1 1 0 011-1h10a1 1 0 011 1v12a1 1 0 102 0V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                Log In
+                            </Link>
+                            <Link
+                                :href="route('register') + '?intended=' + encodeURIComponent(currentUrl)"
+                                class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+                            >
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"></path>
+                                </svg>
+                                Create Account
+                            </Link>
+                        </div>
+                        <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                            Creating an account is quick and free!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step Indicators (only show if authenticated) -->
+                <div v-if="isAuthenticated">
 
                 <!-- Step Indicators -->
                 <div class="mb-8">
@@ -496,6 +545,9 @@ onMounted(() => {
                         </button>
                     </div>
                 </div>
+
+                </div>
+                <!-- End of authenticated content -->
             </div>
         </section>
     </PublicLayout>

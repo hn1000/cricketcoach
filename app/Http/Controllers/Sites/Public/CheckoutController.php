@@ -22,6 +22,11 @@ class CheckoutController extends Controller
      */
     public function show(Order $order)
     {
+        // Verify the authenticated user owns this order
+        if (!auth()->check() || $order->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized access to this order.');
+        }
+
         // Verify order is pending payment
         if ($order->status !== 'pending') {
             return redirect()->route('booking.confirmation', $order->items->first()->orderable->confirmation_token)
@@ -42,6 +47,13 @@ class CheckoutController extends Controller
      */
     public function createPaymentIntent(Order $order)
     {
+        // Verify the authenticated user owns this order
+        if (!auth()->check() || $order->user_id !== auth()->id()) {
+            return response()->json([
+                'error' => 'Unauthorized access to this order.',
+            ], 403);
+        }
+
         try {
             if ($order->status !== 'pending') {
                 return response()->json([
@@ -98,6 +110,13 @@ class CheckoutController extends Controller
      */
     public function confirm(Request $request, Order $order)
     {
+        // Verify the authenticated user owns this order
+        if (!auth()->check() || $order->user_id !== auth()->id()) {
+            return response()->json([
+                'error' => 'Unauthorized access to this order.',
+            ], 403);
+        }
+
         $request->validate([
             'payment_intent_id' => 'required|string',
         ]);
