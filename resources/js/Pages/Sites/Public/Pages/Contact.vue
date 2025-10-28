@@ -27,7 +27,7 @@ const submit = () => {
                     Have a question? Need help? We're here to assist you.
                 </p>
 
-                <div v-if="$page.props.flash.success" class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-green-900/20 dark:text-green-400">
+                <div v-if="$page.props.flash?.success" class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-green-900/20 dark:text-green-400">
                     {{ $page.props.flash.success }}
                 </div>
 
