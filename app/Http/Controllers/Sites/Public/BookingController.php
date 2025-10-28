@@ -54,6 +54,7 @@ class BookingController extends Controller
      */
     public function store(Request $request)
     {
+        // User authentication is enforced by middleware
 
         $validated = $request->validate([
             'company_id' => 'required|exists:companies,id',
@@ -108,9 +109,9 @@ class BookingController extends Controller
             // For now, using a default price of $50
             $price = 50.00;
 
-            // Create the order
+            // Create the order (user_id is guaranteed to be set due to auth middleware)
             $order = Order::create([
-                'user_id' => auth()->id(), // null if guest
+                'user_id' => auth()->id(),
                 'customer_name' => $validated['customer_name'],
                 'customer_email' => $validated['customer_email'],
                 'customer_phone' => $validated['customer_phone'],
@@ -161,17 +162,14 @@ class BookingController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'order_id' => $order->id,
-                'booking_id' => $booking->id,
-                'message' => 'Booking created successfully',
-            ]);
+            // Redirect to checkout page
+            return redirect()->route('checkout.show', $order->id);
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return response()->json([
-                'message' => 'Failed to create booking: ' . $e->getMessage(),
-            ], 500);
+            return redirect()->back()->withErrors([
+                'general' => 'Failed to create booking: ' . $e->getMessage(),
+            ]);
         }
     }
 
