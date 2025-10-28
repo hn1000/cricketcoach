@@ -142,10 +142,10 @@ const mobileMenuOpen = ref(false);
                                 <Link :href="route('companies.index')" class="hover:underline">Browse Academies</Link>
                             </li>
                             <li class="mb-2">
-                                <a href="#how-it-works" class="hover:underline">How It Works</a>
+                                <Link :href="route('how-it-works')" class="hover:underline">How It Works</Link>
                             </li>
                             <li class="mb-2">
-                                <a href="#about" class="hover:underline">About Us</a>
+                                <Link :href="route('about')" class="hover:underline">About Us</Link>
                             </li>
                         </ul>
                     </div>
@@ -155,16 +155,16 @@ const mobileMenuOpen = ref(false);
                         <h3 class="mb-4 text-sm font-semibold text-gray-900 uppercase dark:text-white">Support</h3>
                         <ul class="text-gray-500 dark:text-gray-400">
                             <li class="mb-2">
-                                <a href="#contact" class="hover:underline">Contact Us</a>
+                                <Link :href="route('contact')" class="hover:underline">Contact Us</Link>
                             </li>
                             <li class="mb-2">
-                                <a href="#faq" class="hover:underline">FAQs</a>
+                                <Link :href="route('faq')" class="hover:underline">FAQs</Link>
                             </li>
                             <li class="mb-2">
-                                <a href="#privacy" class="hover:underline">Privacy Policy</a>
+                                <Link :href="route('privacy')" class="hover:underline">Privacy Policy</Link>
                             </li>
                             <li class="mb-2">
-                                <a href="#terms" class="hover:underline">Terms of Service</a>
+                                <Link :href="route('terms')" class="hover:underline">Terms of Service</Link>
                             </li>
                         </ul>
                     </div>
