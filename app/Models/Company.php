@@ -18,11 +18,18 @@ class Company extends Model
         'email',
         'phone',
         'address',
+        'postcode',
+        'latitude',
+        'longitude',
         'is_active',
+        'booking_system_on',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'booking_system_on' => 'boolean',
+        'latitude' => 'float',
+        'longitude' => 'float',
     ];
 
     public function staff(): HasMany
@@ -38,5 +45,18 @@ class Company extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function enquiryMessages(): HasMany
+    {
+        return $this->hasMany(EnquiryMessage::class);
+    }
+
+    /**
+     * Check if this company uses online booking system
+     */
+    public function usesOnlineBooking(): bool
+    {
+        return $this->booking_system_on === true;
     }
 }

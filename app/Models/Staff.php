@@ -20,11 +20,23 @@ class Staff extends Model
         'department',
         'hire_date',
         'is_active',
+        'bio',
+        'profile_photo',
+        'qualifications',
+        'specialties',
+        'lesson_types',
+        'facilities',
+        'technology_available',
     ];
 
     protected $casts = [
         'hire_date' => 'date',
         'is_active' => 'boolean',
+        'qualifications' => 'array',
+        'specialties' => 'array',
+        'lesson_types' => 'array',
+        'facilities' => 'array',
+        'technology_available' => 'array',
     ];
 
     public function company(): BelongsTo
@@ -45,6 +57,11 @@ class Staff extends Model
     public function bookings()
     {
         return $this->hasMany(Booking::class);
+    }
+
+    public function enquiryMessages()
+    {
+        return $this->hasMany(EnquiryMessage::class);
     }
 
     /**

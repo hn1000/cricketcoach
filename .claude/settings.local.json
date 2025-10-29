@@ -9,7 +9,8 @@
       "Bash(\"C:\\Users\\hugh\\.config\\herd-lite\\bin\\composer.bat\" require laravel/cashier)",
       "Bash(curl:*)",
       "Bash(python -m json.tool:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "WebFetch(domain:www.pgaplay.co.uk)"
     ],
     "deny": [],
     "ask": []
