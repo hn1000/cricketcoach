@@ -85,7 +85,7 @@ const formatLabel = (value) => {
                 max="50"
                 step="5"
                 @change="applyFilters"
-                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer dark:bg-gray-700 accent-blue-600 slider"
             />
             <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
                 <span>5 mi</span>
@@ -182,3 +182,74 @@ const formatLabel = (value) => {
         </div>
     </div>
 </template>
+
+<style scoped>
+/* Range slider styling */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+}
+
+input[type="range"]::-webkit-slider-track {
+    width: 100%;
+    height: 0.5rem;
+    background: rgb(229, 231, 235);
+    border-radius: 0.5rem;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 1.25rem;
+    width: 1.25rem;
+    border-radius: 50%;
+    background: #2563eb;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    margin-top: -0.375rem;
+}
+
+input[type="range"]::-moz-range-track {
+    width: 100%;
+    height: 0.5rem;
+    background: rgb(229, 231, 235);
+    border-radius: 0.5rem;
+}
+
+input[type="range"]::-moz-range-thumb {
+    height: 1.25rem;
+    width: 1.25rem;
+    border-radius: 50%;
+    background: #2563eb;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
+    background: #1d4ed8;
+}
+
+input[type="range"]:hover::-moz-range-thumb {
+    background: #1d4ed8;
+}
+
+/* Dark mode */
+.dark input[type="range"]::-webkit-slider-track {
+    background: rgb(55, 65, 81);
+}
+
+.dark input[type="range"]::-moz-range-track {
+    background: rgb(55, 65, 81);
+}
+
+.dark input[type="range"]::-webkit-slider-thumb {
+    border-color: rgb(31, 41, 55);
+}
+
+.dark input[type="range"]::-moz-range-thumb {
+    border-color: rgb(31, 41, 55);
+}
+</style>

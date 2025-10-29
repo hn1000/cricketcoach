@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { Loader } from '@googlemaps/js-api-loader';
 
 const props = defineProps({
     companies: {
@@ -25,8 +24,30 @@ const markers = ref([]);
 const circle = ref(null);
 const isLoading = ref(true);
 const error = ref(null);
+let googleMapsLoaded = false;
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+const loadGoogleMapsScript = () => {
+    return new Promise((resolve, reject) => {
+        if (googleMapsLoaded || window.google?.maps) {
+            googleMapsLoaded = true;
+            resolve();
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=maps,marker&v=weekly`;
+        script.async = true;
+        script.defer = true;
+        script.onload = () => {
+            googleMapsLoaded = true;
+            resolve();
+        };
+        script.onerror = () => reject(new Error('Failed to load Google Maps script'));
+        document.head.appendChild(script);
+    });
+};
 
 const initMap = async () => {
     if (!API_KEY) {
@@ -36,23 +57,30 @@ const initMap = async () => {
     }
 
     try {
-        const loader = new Loader({
-            apiKey: API_KEY,
-            version: 'weekly',
-        });
+        await loadGoogleMapsScript();
 
-        const { Map } = await loader.importLibrary('maps');
-        const { AdvancedMarkerElement, PinElement } = await loader.importLibrary('marker');
+        const { Map } = await google.maps.importLibrary('maps');
 
         // Default center (UK)
         const center = props.userCoordinates
             ? { lat: props.userCoordinates.latitude, lng: props.userCoordinates.longitude }
             : { lat: 52.4862, lng: -1.8904 }; // Birmingham, UK
 
+        // Note: AdvancedMarkerElement requires a valid map ID from Google Cloud Console
+        // For now, we'll use standard markers which work without a map ID
         map.value = new Map(mapContainer.value, {
             center,
             zoom: props.userCoordinates ? 10 : 6,
-            mapId: 'CRICKET_COACH_MAP',
+            zoomControl: true,
+            zoomControlOptions: {
+                position: google.maps.ControlPosition.RIGHT_CENTER,
+            },
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: true,
+            fullscreenControlOptions: {
+                position: google.maps.ControlPosition.RIGHT_TOP,
+            },
         });
 
         // Add radius circle if user location is available
@@ -102,31 +130,50 @@ const addMarkers = async () => {
     markers.value.forEach(marker => marker.setMap(null));
     markers.value = [];
 
-    const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary('marker');
-    const { InfoWindow } = await google.maps.importLibrary('maps');
+    console.log('Companies to map:', props.companies);
 
     props.companies.forEach((company, index) => {
-        if (!company.latitude || !company.longitude) return;
-
-        const pinElement = new PinElement({
-            background: '#22c55e',
-            borderColor: '#166534',
-            glyphColor: '#fff',
+        console.log(`Company ${company.name}:`, {
+            lat: company.latitude,
+            lng: company.longitude,
+            type_lat: typeof company.latitude,
+            type_lng: typeof company.longitude
         });
 
-        const marker = new AdvancedMarkerElement({
+        if (!company.latitude || !company.longitude) {
+            console.log(`Skipping ${company.name} - missing coordinates`);
+            return;
+        }
+
+        const lat = parseFloat(company.latitude);
+        const lng = parseFloat(company.longitude);
+
+        if (isNaN(lat) || isNaN(lng)) {
+            console.log(`Skipping ${company.name} - invalid coordinates`);
+            return;
+        }
+
+        // Use standard marker (works without map ID)
+        const marker = new google.maps.Marker({
             map: map.value,
-            position: { lat: company.latitude, lng: company.longitude },
+            position: { lat, lng },
             title: company.name,
-            content: pinElement.element,
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 10,
+                fillColor: '#22c55e',
+                fillOpacity: 1,
+                strokeColor: '#166534',
+                strokeWeight: 2,
+            },
         });
 
-        const infoWindow = new InfoWindow({
+        const infoWindow = new google.maps.InfoWindow({
             content: `
-                <div class="p-2">
-                    <h3 class="font-bold text-gray-900">${company.name}</h3>
-                    <p class="text-sm text-gray-600">${company.address || ''}</p>
-                    ${company.distance !== undefined ? `<p class="text-sm text-green-600 font-semibold mt-1">${company.distance} miles away</p>` : ''}
+                <div style="padding: 8px;">
+                    <h3 style="font-weight: bold; color: #111827; margin: 0 0 4px 0;">${company.name}</h3>
+                    <p style="font-size: 14px; color: #4b5563; margin: 0;">${company.address || ''}</p>
+                    ${company.distance !== undefined ? `<p style="font-size: 14px; color: #22c55e; font-weight: 600; margin: 4px 0 0 0;">${company.distance} miles away</p>` : ''}
                 </div>
             `,
         });
@@ -137,6 +184,7 @@ const addMarkers = async () => {
         });
 
         markers.value.push(marker);
+        console.log(`Added marker for ${company.name} at`, lat, lng);
     });
 
     // Fit bounds to show all markers
@@ -145,19 +193,25 @@ const addMarkers = async () => {
 
         if (props.userCoordinates) {
             bounds.extend({
-                lat: props.userCoordinates.latitude,
-                lng: props.userCoordinates.longitude,
+                lat: parseFloat(props.userCoordinates.latitude),
+                lng: parseFloat(props.userCoordinates.longitude),
             });
         }
 
         props.companies.forEach(company => {
             if (company.latitude && company.longitude) {
-                bounds.extend({ lat: company.latitude, lng: company.longitude });
+                const lat = parseFloat(company.latitude);
+                const lng = parseFloat(company.longitude);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    bounds.extend({ lat, lng });
+                }
             }
         });
 
         map.value.fitBounds(bounds);
     }
+
+    console.log(`Total markers added: ${markers.value.length}`);
 };
 
 onMounted(() => {
