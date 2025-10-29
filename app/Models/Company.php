@@ -59,4 +59,30 @@ class Company extends Model
     {
         return $this->booking_system_on === true;
     }
+
+    /**
+     * Get the users who manage this company
+     */
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'company_user')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get only the owners of this company
+     */
+    public function owners()
+    {
+        return $this->users()->wherePivot('role', 'owner');
+    }
+
+    /**
+     * Get owners and managers of this company
+     */
+    public function managers()
+    {
+        return $this->users()->whereIn('company_user.role', ['owner', 'manager']);
+    }
 }
