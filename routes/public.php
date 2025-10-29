@@ -3,6 +3,7 @@
 use App\Http\Controllers\Sites\Public\BookingController;
 use App\Http\Controllers\Sites\Public\CheckoutController;
 use App\Http\Controllers\Sites\Public\CompanyController;
+use App\Http\Controllers\Sites\Public\EnquiryMessageController;
 use App\Http\Controllers\Sites\Public\HomeController;
 use App\Http\Controllers\Sites\Public\PageController;
 use App\Http\Controllers\Webhooks\StripeWebhookController;
@@ -43,6 +44,16 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     Route::get('/{order}', [CheckoutController::class, 'show'])->name('show');
     Route::post('/{order}/payment-intent', [CheckoutController::class, 'createPaymentIntent'])->name('payment-intent');
     Route::post('/{order}/confirm', [CheckoutController::class, 'confirm'])->name('confirm');
+});
+
+// Enquiry system (messaging instead of booking)
+Route::prefix('enquiry')->name('enquiry.')->group(function () {
+    Route::get('/companies/{company}/staff/{staff}', [EnquiryMessageController::class, 'create'])->name('create');
+
+    Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
+        Route::post('/companies/{company}/staff/{staff}', [EnquiryMessageController::class, 'store'])->name('store');
+        Route::get('/success/{enquiry}', [EnquiryMessageController::class, 'success'])->name('success');
+    });
 });
 
 // Stripe webhook (must not have CSRF protection)

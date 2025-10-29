@@ -176,12 +176,20 @@ const props = defineProps({
                             </p>
                         </div>
 
-                        <!-- Book Button -->
+                        <!-- Book/Enquiry Button (conditional based on booking_system_on) -->
                         <Link
+                            v-if="company.booking_system_on"
                             :href="route('booking.create', { company: company.id, staff: staff.id })"
                             class="block w-full text-center px-4 py-3 bg-blue-700 hover:bg-blue-800 text-white font-medium rounded-lg transition-colors focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                         >
                             Book Coaching Session
+                        </Link>
+                        <Link
+                            v-else
+                            :href="route('enquiry.create', { company: company.id, staff: staff.id })"
+                            class="block w-full text-center px-4 py-3 bg-green-700 hover:bg-green-800 text-white font-medium rounded-lg transition-colors focus:ring-4 focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+                        >
+                            Send Enquiry
                         </Link>
                     </div>
                 </div>

@@ -9,12 +9,56 @@ defineProps({
 
 const searchQuery = ref('');
 const selectedLocation = ref('');
+const isGettingLocation = ref(false);
+const locationError = ref('');
 
 const handleSearch = () => {
     router.get(route('companies.index'), {
         search: searchQuery.value,
         location: selectedLocation.value,
     });
+};
+
+const useMyLocation = () => {
+    if (!navigator.geolocation) {
+        locationError.value = 'Geolocation is not supported by your browser';
+        return;
+    }
+
+    isGettingLocation.value = true;
+    locationError.value = '';
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            // Use reverse geocoding or just use coordinates
+            // For simplicity, we'll set a placeholder and let the backend handle it
+            selectedLocation.value = `${position.coords.latitude},${position.coords.longitude}`;
+            isGettingLocation.value = false;
+
+            // Automatically search with location
+            handleSearch();
+        },
+        (error) => {
+            isGettingLocation.value = false;
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    locationError.value = 'Location access denied. Please enable location services.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    locationError.value = 'Location information unavailable.';
+                    break;
+                case error.TIMEOUT:
+                    locationError.value = 'Location request timed out.';
+                    break;
+                default:
+                    locationError.value = 'An unknown error occurred.';
+            }
+        },
+        {
+            timeout: 10000,
+            enableHighAccuracy: true,
+        }
+    );
 };
 
 const featuredCompanies = (companies) => {
@@ -38,41 +82,74 @@ const featuredCompanies = (companies) => {
 
                 <!-- Search Bar -->
                 <div class="max-w-3xl mx-auto">
-                    <form @submit.prevent="handleSearch" class="flex flex-col md:flex-row gap-4 mb-8">
+                    <form @submit.prevent="handleSearch" class="flex flex-col md:flex-row gap-4 mb-4">
                         <div class="flex-1">
                             <input
                                 v-model="searchQuery"
                                 type="text"
                                 placeholder="Search for coaches, academies, or specialties..."
-                                class="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-300 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                class="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-4 focus:ring-green-300 focus:border-green-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-green-500 dark:focus:border-green-500"
                             />
                         </div>
-                        <div class="w-full md:w-64">
+                        <div class="w-full md:w-64 relative">
                             <input
                                 v-model="selectedLocation"
                                 type="text"
-                                placeholder="Location"
-                                class="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-300 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                placeholder="Location or postcode"
+                                class="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-4 focus:ring-green-300 focus:border-green-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-green-500 dark:focus:border-green-500"
                             />
                         </div>
                         <button
                             type="submit"
-                            class="px-6 py-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-base whitespace-nowrap dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                            class="px-6 py-3 text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-base whitespace-nowrap dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
                         >
                             Search
                         </button>
                     </form>
+
+                    <!-- Use My Location Button -->
+                    <div class="text-center mb-8">
+                        <button
+                            @click="useMyLocation"
+                            :disabled="isGettingLocation"
+                            class="inline-flex items-center text-sm text-green-600 hover:text-green-700 dark:text-green-500 dark:hover:text-green-400 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <svg
+                                v-if="!isGettingLocation"
+                                class="w-4 h-4 mr-2"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <svg
+                                v-else
+                                class="animate-spin w-4 h-4 mr-2"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            {{ isGettingLocation ? 'Getting your location...' : 'Use my location' }}
+                        </button>
+                        <p v-if="locationError" class="mt-2 text-sm text-red-600 dark:text-red-400">
+                            {{ locationError }}
+                        </p>
+                    </div>
                 </div>
 
                 <div class="flex flex-wrap justify-center gap-2 mb-4">
                     <span class="text-sm text-gray-500 dark:text-gray-400">Popular searches:</span>
-                    <Link :href="route('companies.index', { search: 'batting' })" class="text-sm text-blue-600 hover:underline dark:text-blue-500">Batting</Link>
+                    <Link :href="route('companies.index', { specialties: ['batting'] })" class="text-sm text-green-600 hover:underline dark:text-green-500">Batting</Link>
                     <span class="text-gray-300 dark:text-gray-600">•</span>
-                    <Link :href="route('companies.index', { search: 'bowling' })" class="text-sm text-blue-600 hover:underline dark:text-blue-500">Bowling</Link>
+                    <Link :href="route('companies.index', { specialties: ['bowling'] })" class="text-sm text-green-600 hover:underline dark:text-green-500">Bowling</Link>
                     <span class="text-gray-300 dark:text-gray-600">•</span>
-                    <Link :href="route('companies.index', { search: 'junior' })" class="text-sm text-blue-600 hover:underline dark:text-blue-500">Junior Coaching</Link>
+                    <Link :href="route('companies.index', { specialties: ['junior'] })" class="text-sm text-green-600 hover:underline dark:text-green-500">Junior Coaching</Link>
                     <span class="text-gray-300 dark:text-gray-600">•</span>
-                    <Link :href="route('companies.index', { search: 'wicket-keeping' })" class="text-sm text-blue-600 hover:underline dark:text-blue-500">Wicket-keeping</Link>
+                    <Link :href="route('companies.index', { specialties: ['wicket-keeping'] })" class="text-sm text-green-600 hover:underline dark:text-green-500">Wicket-keeping</Link>
                 </div>
             </div>
         </section>

@@ -19,6 +19,7 @@
         "vue": "^3.3.13"
     },
     "dependencies": {
+        "@googlemaps/js-api-loader": "^2.0.2",
         "@stripe/stripe-js": "^4.0.0",
         "flowbite": "^3.1.2"
     }

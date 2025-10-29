@@ -8,6 +8,7 @@ use App\Http\Controllers\Sites\Admin\CompanyCalendarController;
 use App\Http\Controllers\Sites\Admin\CompanyController;
 use App\Http\Controllers\Sites\Admin\CompanyManageController;
 use App\Http\Controllers\Sites\Admin\DashboardController;
+use App\Http\Controllers\Sites\Admin\EnquiryMessageController;
 use App\Http\Controllers\Sites\Admin\OrderController;
 use App\Http\Controllers\Sites\Admin\StaffCalendarController;
 use App\Http\Controllers\Sites\Admin\StaffController;
@@ -58,4 +59,11 @@ Route::middleware([
     Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
     Route::post('orders/{order}/refund', [OrderController::class, 'refund'])->name('orders.refund');
+
+    // Enquiry management routes
+    Route::prefix('enquiries')->name('enquiries.')->group(function () {
+        Route::get('/', [EnquiryMessageController::class, 'index'])->name('index');
+        Route::get('/{enquiry}', [EnquiryMessageController::class, 'show'])->name('show');
+        Route::patch('/{enquiry}/status', [EnquiryMessageController::class, 'updateStatus'])->name('update-status');
+    });
 });

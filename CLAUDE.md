@@ -230,3 +230,4 @@ Test structure follows Laravel conventions:
 - **Base TestCase:** `tests/TestCase.php` - Extended by all tests
 
 Jetstream includes comprehensive feature tests for all authentication flows.
+- continue

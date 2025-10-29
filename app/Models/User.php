@@ -105,4 +105,50 @@ class User extends Authenticatable
     {
         return $this->role === 'customer';
     }
+
+    /**
+     * Get the companies that this user manages
+     */
+    public function companies()
+    {
+        return $this->belongsToMany(Company::class, 'company_user')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /**
+     * Check if user can manage a specific company
+     */
+    public function canManageCompany(int $companyId): bool
+    {
+        return $this->companies()
+            ->where('companies.id', $companyId)
+            ->whereIn('company_user.role', ['owner', 'manager'])
+            ->exists();
+    }
+
+    /**
+     * Get user's role for a specific company
+     */
+    public function getCompanyRole(int $companyId): ?string
+    {
+        $company = $this->companies()->where('companies.id', $companyId)->first();
+        return $company ? $company->pivot->role : null;
+    }
+
+    /**
+     * Check if user belongs to any company
+     */
+    public function belongsToAnyCompany(): bool
+    {
+        return $this->companies()->exists();
+    }
+
+    /**
+     * Get IDs of all companies user belongs to
+     */
+    public function getCompanyIds(): array
+    {
+        return $this->companies()->pluck('companies.id')->toArray();
+    }
 }
